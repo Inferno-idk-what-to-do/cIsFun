@@ -1,12 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #define PRINTMENU 1
 #define PRINTLIST 2
 #define INSERTTAIL 3
 #define INSERTHEAD 4
-#define INSERTN 5
-#define DELETE 6
-#define QUIT 7
+#define DELETE 5
+#define QUIT 6
 
 struct ListNode {
 	int data;
@@ -20,10 +20,8 @@ void printMenu() {
 	printf("%d -> print list\n", PRINTLIST);
 	printf("%d -> insert node at tail\n", INSERTTAIL);
 	printf("%d -> insert node at head\n", INSERTHEAD);
-	printf("%d -> insert node at n\n", INSERTN);
 	printf("%d -> delete node at n\n", DELETE);
 	printf("%d -> quit\n", QUIT);
-	return;
 }
 
 void printList() {
@@ -38,16 +36,15 @@ void printList() {
 		}
 		printf("NULL\n");
 	}
-	return;
 }
 
 void insertTail(int* data) {
-	struct ListNode new;
-	new.data = *data;
-	new.next = NULL;
+	struct ListNode* new = malloc(sizeof(struct ListNode));
+	new->data = *data;
+	new->next = NULL;
 
 	if (head == NULL) {
-		head = &new;
+		head = new;
 	} else {
 		struct ListNode* current = head;
 
@@ -55,17 +52,49 @@ void insertTail(int* data) {
 			current = current->next;
 		}
 
-		current->next = &new;
+		current->next = new;
 	}
-	return;
 }
 
 void insertHead(int* data) {
 	struct ListNode* oldHead = head;
-	struct ListNode new;
-	new.data = *data;
-	new.next = oldHead;
-	head = &new;
+	struct ListNode* new = malloc(sizeof(struct ListNode));
+	new->data = *data;
+	new->next = oldHead;
+	head = new;
+}
+
+void delete(int* pos) {
+	int counter = *pos;
+
+	if(counter == 0) {
+		struct ListNode* oldHead = head;
+		head = head->next;
+		free(oldHead);
+		return;
+	}
+
+	struct ListNode* prev = NULL;
+	struct ListNode* current = head;
+
+	while(counter > 0) {
+		if (current == NULL) {
+			printf("node not in list\n");
+			return;
+		} else {
+			counter--;
+			prev = current;
+			current = current->next;
+		}
+	}
+
+	if (current == NULL) {
+		printf("node not in list\n");
+		return;
+	}
+
+	prev->next = current->next;
+	free(current);
 }
 
 int main() {
@@ -75,7 +104,12 @@ int main() {
 
 	while (userChoice != QUIT) {
 		printf("=> ");
-		scanf("%d", &userChoice);
+		int error = scanf("%d", &userChoice);
+
+		if(error == 0) {
+			printf("invalid entry: enter 1 for help\n");
+			continue;
+		}
 
 		switch(userChoice) {
 			case PRINTMENU:
@@ -96,8 +130,17 @@ int main() {
 				insertHead(&userChoice);
 				userChoice = -1;
 				break;
+			case DELETE:
+				printf("enter position (0 indexed) to be deleted => ");
+				scanf("%d", &userChoice);
+				delete(&userChoice);
+				userChoice = -1;
+				break;
 			case QUIT:
 				return 0;
+			default:
+				printf("invalid entry: enter 1 for help\n");
+				break;
 		}
 	}
 
